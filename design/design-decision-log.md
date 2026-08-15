@@ -100,7 +100,7 @@ When a decision reverses or supersedes an earlier one, don't delete the old entr
 **Decision.** Available copies get a primary "Lend to someone" action opening a borrower picker: connections listed, plus a "Someone not on Stacks" free-text name field. Choosing a borrower flows into the due-date sheet, then checked out. Off-app loans render a "not on Stacks" tag and only the owner-driven "Mark returned directly" (no borrower-side return; no sim-return affordance).
 **Why.** The Steward's real lending is often proactive and to people not yet on the app; the catalog's tracking value (Principle 1, the wedge) must not be gated behind the borrower having an account. One safe default over configuration (Principle 5): borrower picker defaults to connections, off-app is one tap away.
 **Rejected / considered.** Restricting checkout to request-driven, on-app borrowers only — rejected as too narrow for cold-start and everyday lending.
-**Affects.** Owner detail available-state CTA; new Lend sheet; `copy-state-model.md` (direct-lend on-ramp, off-app rules); `product/information-architecture.md` (C-series actions).
+**Affects.** Owner detail available-state CTA; new Lend sheet; `circulation/copy-state-model.md` (direct-lend on-ramp, off-app rules); `product/information-architecture.md` (C-series actions).
 
 ### Borrow history shows date and borrower only, no on-time/late nuance
 **Status:** Accepted · **Date:** 2026-08-07 · **Surface:** owner book detail, borrow history section
@@ -124,7 +124,7 @@ When a decision reverses or supersedes an earlier one, don't delete the old entr
 ### Decline screen forks into a next-state choice
 **Status:** Accepted · **Date:** 2026-08-02 · **Surface:** owner decline action
 **Decision.** Declining a request is one action that then asks the owner to send the copy to *available* or *unavailable*. No reason is captured; the borrower only sees "declined."
-**Why.** Mirrors the settled circulation rule (`copy-state-model.md`) and Principle 4 — declining stays low-friction and non-punitive, no awkward reason field.
+**Why.** Mirrors the settled circulation rule (`circulation/copy-state-model.md`) and Principle 4 — declining stays low-friction and non-punitive, no awkward reason field.
 **Affects.** Decline flow; requires the next-state choice built into the screen, not a separate step.
 
 ---

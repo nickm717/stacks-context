@@ -62,7 +62,7 @@ The single most-reused component in the app (already an Accepted decision: "Copy
 - **Transition:** tap-to-detail is the priority target for the unique page-transition work (§1 Motion) — likely a shared-element treatment on the cover.
 
 ### C. State badge
-The highest-stakes component to get right — it's the whole legibility promise (Principle 3) and the accessibility-critical one (never color alone). It isn't six variants, it's closer to eleven once role is factored in. Full enumeration, pulled directly from the state-by-role grid in `copy-state-model.md`:
+The highest-stakes component to get right — it's the whole legibility promise (Principle 3) and the accessibility-critical one (never color alone). It isn't six variants, it's closer to eleven once role is factored in. Full enumeration, pulled directly from the state-by-role grid in `circulation/copy-state-model.md`:
 
 | State | Owner-facing label | Other-role label | Badge color role |
 |---|---|---|---|
@@ -187,7 +187,7 @@ The 2026-08-10 round resolved most of the blocking foundational and platform que
 12. Creative north star metaphor and 2–3 named anchor references for the visual system (Impeccable's `shape` inputs — still not named).
 
 ### Content, tied to components
-13. Final microcopy pass on all 11 badge/role-label variants in §3.C (drafted in `copy-state-model.md`, not yet a copy deck).
+13. Final microcopy pass on all 11 badge/role-label variants in §3.C (drafted in `circulation/copy-state-model.md`, not yet a copy deck).
 14. Notification-row copy templates, one per event type.
 15. Error-message copy standard (what happened + what to do next, already a house rule — needs an actual short library of messages).
 
