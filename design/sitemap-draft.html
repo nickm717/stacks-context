@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Stacks — Application Sitemap (Draft for Figma)</title>
+<style>
+  :root {
+    --bg: #F6F2EA;
+    --bg-alt: #EFE8DB;
+    --ink: #2B2621;
+    --ink-soft: #6B6259;
+    --line: #DDD2C0;
+    --card: #FFFDF9;
+    --poc: #B4682D;
+    --poc-bg: #FBEADB;
+    --poc-border: #E5B98A;
+    --fast: #46647A;
+    --fast-bg: #E4EBF0;
+    --fast-border: #B7C8D4;
+    --post: #948A7C;
+    --post-bg: #EFEBE2;
+    --post-border: #D6CDBB;
+    --shell: #7A5C3E;
+    --shell-bg: #F1E4D2;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "SF Pro Text", "Segoe UI", Helvetica, Arial, sans-serif;
+    padding: 40px 32px 80px;
+  }
+  h1 {
+    font-family: "Iowan Old Style", "Georgia", "New York", serif;
+    font-weight: 500;
+    font-size: 30px;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    color: var(--ink-soft);
+    font-size: 14px;
+    margin: 0 0 24px;
+    max-width: 720px;
+    line-height: 1.5;
+  }
+
+  /* Legend + stage nav */
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--ink-soft); }
+  .swatch { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+  .sw-poc { background: var(--poc); }
+  .sw-fast { background: var(--fast); }
+  .sw-post { background: var(--post); border: 1px dashed #fff; }
+
+  .stage-nav { display: flex; gap: 6px; background: var(--bg-alt); padding: 4px; border-radius: 999px; }
+  .stage-nav button {
+    border: none; background: transparent; padding: 7px 14px; border-radius: 999px;
+    font-size: 12.5px; font-weight: 600; color: var(--ink-soft); cursor: pointer;
+    font-family: inherit;
+  }
+  .stage-nav button.active { background: var(--ink); color: var(--bg); }
+
+  .stage { margin-bottom: 56px; }
+  .stage[hidden] { display: none; }
+
+  .stage-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  .stage-num {
+    font-family: "Iowan Old Style", "Georgia", serif;
+    font-size: 13px; font-weight: 700; color: var(--card);
+    background: var(--ink); width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; flex: none;
+  }
+  .stage-title { font-size: 19px; font-weight: 700; margin: 0; }
+  .stage-desc { color: var(--ink-soft); font-size: 13.5px; margin: 6px 0 22px 38px; max-width: 680px; line-height: 1.5; }
+
+  /* Lanes */
+  .lane {
+    margin: 0 0 18px 38px;
+    display: flex;
+    align-items: stretch;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .lane-label {
+    flex: none;
+    width: 168px;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    padding-right: 10px;
+  }
+  .lane-flow { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .arrow { color: var(--line); font-size: 16px; padding: 0 2px; flex: none; }
+  .arrow.branch { color: var(--post-border); }
+
+  /* Node card */
+  .node {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    min-width: 150px;
+    max-width: 190px;
+    box-shadow: 0 1px 2px rgba(43,38,33,0.04);
+  }
+  .node .id-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+  .node .id {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    letter-spacing: 0.02em;
+  }
+  .tag {
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;
+    padding: 2px 6px; border-radius: 999px; flex: none;
+  }
+  .tag.poc { background: var(--poc-bg); color: var(--poc); border: 1px solid var(--poc-border); }
+  .tag.fast { background: var(--fast-bg); color: var(--fast); border: 1px solid var(--fast-border); }
+  .tag.post { background: var(--post-bg); color: var(--post); border: 1px dashed var(--post-border); }
+  .node .title { font-size: 12.5px; font-weight: 600; line-height: 1.3; margin-bottom: 2px; }
+  .node .desc { font-size: 11px; color: var(--ink-soft); line-height: 1.35; }
+  .node.dashed { border-style: dashed; opacity: 0.82; }
+  .node.shell {
+    background: var(--shell-bg);
+    border-color: var(--shell);
+  }
+  .node.shell .id { color: var(--shell); }
+
+  /* Hub / shell diagram for stage 2 */
+  .shell-wrap {
+    margin: 0 0 30px 38px;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    flex-wrap: wrap;
+    background: var(--bg-alt);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+  .shell-label { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-soft); width: 100%; margin-bottom: 4px; }
+  .tabs-row { display: flex; gap: 4px; }
+  .plus { color: var(--ink-soft); font-size: 13px; padding: 0 4px; }
+
+  /* Edge-action chip row */
+  .chip-row { margin: -4px 0 18px 38px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    padding: 5px 11px 5px 8px; font-size: 11px;
+  }
+  .chip .id { font-family: ui-monospace, monospace; font-weight: 700; color: var(--poc); font-size: 10px; }
+  .chip .note { color: var(--ink-soft); }
+
+  /* Grid for stage 3 groups */
+  .group-title { font-size: 12.5px; font-weight: 700; margin: 0 0 10px 38px; color: var(--ink); }
+  .grid {
+    margin: 0 0 26px 38px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 10px;
+    max-width: 900px;
+  }
+
+  footer { margin-left: 38px; margin-top: 40px; font-size: 11.5px; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 14px; max-width: 700px; line-height: 1.6; }
+  footer code { background: var(--bg-alt); padding: 1px 5px; border-radius: 4px; font-size: 10.5px; }
+</style>
+</head>
+<body>
+
+<h1>Stacks — Application Sitemap</h1>
+<p class="subtitle">Draft for review before rebuilding in Figma. Screen IDs match <code>product/information-architecture.md</code> so this maps 1:1 onto frames later. Three stages: get in the door, live in the two core loops, then everything that hangs off them.</p>
+
+<div class="toolbar">
+  <div class="legend">
+    <div class="legend-item"><span class="swatch sw-poc"></span>POC — build now</div>
+    <div class="legend-item"><span class="swatch sw-fast"></span>Fast follow — stub/default for now</div>
+    <div class="legend-item"><span class="swatch sw-post"></span>Post-POC — placeholder only</div>
+  </div>
+  <div class="stage-nav" id="stageNav">
+    <button data-stage="all" class="active">All stages</button>
+    <button data-stage="1">1 · Onboarding</button>
+    <button data-stage="2">2 · Core loops</button>
+    <button data-stage="3">3 · Independent flows</button>
+  </div>
+</div>
+
+<!-- STAGE 1 -->
+<section class="stage" data-stage="1">
+  <div class="stage-head">
+    <div class="stage-num">1</div>
+    <h2 class="stage-title">Onboarding & identity</h2>
+  </div>
+  <p class="stage-desc">Pre-shell, one-time. Gets a new user from "why bother" to a first book on the shelf. Ends by routing straight into the scanner — the empty state doing real work.</p>
+
+  <div class="lane">
+    <div class="lane-label">First run</div>
+    <div class="lane-flow">
+      <div class="node"><div class="id-row"><span class="id">O1</span><span class="tag poc">POC</span></div><div class="title">Welcome / value prop</div><div class="desc">Lead with neighborhood library, not features</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">O2</span><span class="tag poc">POC</span></div><div class="title">Sign in / Sign up</div><div class="desc">Supabase auth · Sign in with Apple primary</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">O3</span><span class="tag poc">POC</span></div><div class="title">Profile setup</div><div class="desc">Name, optional photo, approx. location — one screen</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">O4</span><span class="tag poc">POC</span></div><div class="title">First-run prompt</div><div class="desc">"Let's add your first books" → routes into scanner</div></div>
+      <span class="arrow branch">⇢</span>
+      <div class="node shell"><div class="id-row"><span class="id">L4</span><span class="tag poc">POC</span></div><div class="title">Into Stage 2</div><div class="desc">Barcode scanner — start of the cataloging loop</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- STAGE 2 -->
+<section class="stage" data-stage="2">
+  <div class="stage-head">
+    <div class="stage-num">2</div>
+    <h2 class="stage-title">Core screen loops</h2>
+  </div>
+  <p class="stage-desc">Where the app is actually used. Cataloging is prototyped first (highest-risk, highest-magic); the circulation loop second. The three-tab shell and global tools sit above both and never disappear.</p>
+
+  <div class="shell-wrap">
+    <div class="shell-label">Persistent shell — governs every screen below</div>
+    <div class="tabs-row">
+      <div class="node shell"><div class="id-row"><span class="id">S1</span><span class="tag poc">POC</span></div><div class="title">Library (home)</div><div class="desc">Default landing tab</div></div>
+      <div class="node shell"><div class="id-row"><span class="id">S1</span><span class="tag poc">POC</span></div><div class="title">Browse</div><div class="desc">Tab</div></div>
+      <div class="node shell"><div class="id-row"><span class="id">S1</span><span class="tag poc">POC</span></div><div class="title">Profile</div><div class="desc">Tab</div></div>
+    </div>
+    <span class="plus">+ global tools, not tabs:</span>
+    <div class="tabs-row">
+      <div class="node shell"><div class="id-row"><span class="id">＋</span><span class="tag poc">POC</span></div><div class="title">Add / Scan</div><div class="desc">Opens L3 method picker</div></div>
+      <div class="node shell"><div class="id-row"><span class="id">N1</span><span class="tag poc">POC</span></div><div class="title">🔔 Notifications</div><div class="desc">Bell — deep-links to actions</div></div>
+      <div class="node shell"><div class="id-row"><span class="id">🔍</span><span class="tag poc">POC</span></div><div class="title">Search</div><div class="desc">Scoped: my shelf / neighbors</div></div>
+    </div>
+  </div>
+
+  <div class="group-title">Loop A — Cataloging (the core magic)</div>
+
+  <div class="lane">
+    <div class="lane-label">Scan path</div>
+    <div class="lane-flow">
+      <div class="node"><div class="id-row"><span class="id">L1 / L2</span><span class="tag poc">POC</span></div><div class="title">My Shelf</div><div class="desc">Home. Empty state routes into Add</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">L3</span><span class="tag poc">POC</span></div><div class="title">Add Books hub</div><div class="desc">Method picker — scan is default</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">L4</span><span class="tag poc">POC</span></div><div class="title">Barcode scanner</div><div class="desc">Live camera + batch, running count. Highest polish</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">L5</span><span class="tag poc">POC</span></div><div class="title">Scan review & confirm</div><div class="desc">Editable list — never adds silently</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">L1</span><span class="tag poc">POC</span></div><div class="title">Back to My Shelf</div><div class="desc">Loop closes</div></div>
+    </div>
+  </div>
+
+  <div class="lane">
+    <div class="lane-label">Manual path</div>
+    <div class="lane-flow">
+      <div class="node dashed"><div class="id-row"><span class="id">L3</span><span class="tag poc">POC</span></div><div class="title">↳ same hub</div><div class="desc">Branch from Add Books</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">L6</span><span class="tag poc">POC</span></div><div class="title">Manual search</div><div class="desc">Title / author</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">L7</span><span class="tag poc">POC</span></div><div class="title">Search results</div><div class="desc">Pick the right edition</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">L8</span><span class="tag poc">POC</span></div><div class="title">Edit your copy</div><div class="desc">Location, condition, status, visibility</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">L9</span><span class="tag poc">POC</span></div><div class="title">Add success</div><div class="desc">Light — keeps momentum</div></div>
+    </div>
+  </div>
+
+  <div class="group-title">Loop B — Circulation (request → return, both roles)</div>
+
+  <div class="lane">
+    <div class="lane-label">Request & approve</div>
+    <div class="lane-flow">
+      <div class="node"><div class="id-row"><span class="id">B3</span><span class="tag poc">POC</span></div><div class="title">Borrower book detail</div><div class="desc">"Request to borrow"</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">C1</span><span class="tag poc">POC</span></div><div class="title">Request to borrow</div><div class="desc">Locks the copy → Requested</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">N1</span><span class="tag poc">POC</span></div><div class="title">Bell → owner</div><div class="desc">Incoming request</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">L10</span><span class="tag poc">POC</span></div><div class="title">Owner book detail</div><div class="desc">Approve / decline / lend live here</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">C3</span><span class="tag poc">POC</span></div><div class="title">Ready for pickup</div><div class="desc">Reserved, loan not started yet</div></div>
+    </div>
+  </div>
+
+  <div class="lane">
+    <div class="lane-label">Handoff → active</div>
+    <div class="lane-flow">
+      <div class="node"><div class="id-row"><span class="id">C5</span><span class="tag poc">POC</span></div><div class="title">Mark handed over</div><div class="desc">Optional due date — clock starts here</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">L11</span><span class="tag poc">POC</span></div><div class="title">Borrowed (borrower)</div><div class="desc">+ "On loan" filter on owner's L1</div></div>
+    </div>
+  </div>
+
+  <div class="lane">
+    <div class="lane-label">Return & confirm</div>
+    <div class="lane-flow">
+      <div class="node"><div class="id-row"><span class="id">C7</span><span class="tag poc">POC</span></div><div class="title">Mark returned</div><div class="desc">Borrower-initiated → return pending</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">N1</span><span class="tag poc">POC</span></div><div class="title">Bell → owner</div><div class="desc">Return to confirm</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">L10</span><span class="tag poc">POC</span></div><div class="title">Owner book detail</div><div class="desc">Confirm or dispute</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">C8</span><span class="tag poc">POC</span></div><div class="title">Confirm return</div><div class="desc">→ Available. Loop closes</div></div>
+    </div>
+  </div>
+
+  <div class="chip-row">
+    <div class="chip"><span class="id">C2</span><span class="note">Cancel request — borrower, releases the lock</span></div>
+    <div class="chip"><span class="id">C4</span><span class="note">Decline — forks to Available / Unavailable, no reason shown</span></div>
+    <div class="chip"><span class="id">C6</span><span class="note">Lend directly — owner skips the request, picks a connection or off-app name → C5</span></div>
+    <div class="chip"><span class="id">C9</span><span class="note">Dispute — "didn't receive it," bounces Return pending → Checked out</span></div>
+  </div>
+</section>
+
+<!-- STAGE 3 -->
+<section class="stage" data-stage="3">
+  <div class="stage-head">
+    <div class="stage-num">3</div>
+    <h2 class="stage-title">Independent flows</h2>
+  </div>
+  <p class="stage-desc">The connective tissue and everything else — designed last because the two loops above have to work first. Grouped by job rather than by nav location.</p>
+
+  <div class="group-title">Connect a neighbor</div>
+  <div class="lane">
+    <div class="lane-label">Invite</div>
+    <div class="lane-flow">
+      <div class="node"><div class="id-row"><span class="id">P1</span><span class="tag poc">POC</span></div><div class="title">Connections list</div><div class="desc">Entry point to a neighbor's library</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">P2</span><span class="tag poc">POC</span></div><div class="title">Invite</div><div class="desc">Share link / code — how demo user #2 gets in</div></div>
+      <span class="arrow branch">⇢</span>
+      <div class="node"><div class="id-row"><span class="id">N1</span><span class="tag poc">POC</span></div><div class="title">Bell → approve</div><div class="desc">Incoming connection request</div></div>
+    </div>
+  </div>
+
+  <div class="group-title">Discover & browse</div>
+  <div class="lane">
+    <div class="lane-label">Browse</div>
+    <div class="lane-flow">
+      <div class="node"><div class="id-row"><span class="id">B1</span><span class="tag poc">POC</span></div><div class="title">Browse home</div><div class="desc">Your connected libraries</div></div>
+      <span class="arrow">→</span>
+      <div class="node"><div class="id-row"><span class="id">B2</span><span class="tag poc">POC</span></div><div class="title">A connected library</div><div class="desc">One neighbor's shelf, availability shown</div></div>
+      <span class="arrow branch">⇢</span>
+      <div class="node dashed"><div class="id-row"><span class="id">B3</span><span class="tag poc">POC</span></div><div class="title">Feeds Loop B</div><div class="desc">Borrower book detail, Stage 2</div></div>
+    </div>
+  </div>
+
+  <div class="group-title">Fast follow — stubbed with a safe default for now</div>
+  <div class="grid">
+    <div class="node"><div class="id-row"><span class="id">L13</span><span class="tag fast">Fast follow</span></div><div class="title">Add manually</div><div class="desc">No ISBN match</div></div>
+    <div class="node"><div class="id-row"><span class="id">P3</span><span class="tag fast">Fast follow</span></div><div class="title">Profile home</div><div class="desc">You, light stats</div></div>
+    <div class="node"><div class="id-row"><span class="id">P4</span><span class="tag fast">Fast follow</span></div><div class="title">Sharing & visibility</div><div class="desc">POC ships one default</div></div>
+    <div class="node"><div class="id-row"><span class="id">P5</span><span class="tag fast">Fast follow</span></div><div class="title">Account & settings</div><div class="desc">Light</div></div>
+    <div class="node"><div class="id-row"><span class="id">B4 / B5</span><span class="tag fast">Fast follow</span></div><div class="title">Cross-library search</div><div class="desc">"Who near me has this title"</div></div>
+    <div class="node"><div class="id-row"><span class="id">S2</span><span class="tag fast">Fast follow</span></div><div class="title">Global search</div><div class="desc">Results grouped by scope</div></div>
+  </div>
+
+  <div class="group-title">Post-POC — structural placeholders only</div>
+  <div class="grid">
+    <div class="node dashed"><div class="id-row"><span class="id">L14</span><span class="tag post">Post-POC</span></div><div class="title">AI shelf scan</div><div class="desc">Photo → multi-detect → feeds L5</div></div>
+    <div class="node dashed"><div class="id-row"><span class="id">L15</span><span class="tag post">Post-POC</span></div><div class="title">Printed-ISBN OCR</div></div>
+    <div class="node dashed"><div class="id-row"><span class="id">L16</span><span class="tag post">Post-POC</span></div><div class="title">CSV / Goodreads import</div></div>
+    <div class="node dashed"><div class="id-row"><span class="id">L17</span><span class="tag post">Post-POC</span></div><div class="title">Shelves & tags</div></div>
+    <div class="node dashed"><div class="id-row"><span class="id">B6</span><span class="tag post">Post-POC</span></div><div class="title">Pod discovery + map</div></div>
+    <div class="node dashed"><div class="id-row"><span class="id">N2</span><span class="tag post">Post-POC</span></div><div class="title">Push notifications</div></div>
+    <div class="node dashed"><div class="id-row"><span class="id">N3</span><span class="tag post">Post-POC</span></div><div class="title">Messaging</div><div class="desc">Handoff coord, notify-when-free</div></div>
+    <div class="node dashed"><div class="id-row"><span class="id">P6</span><span class="tag post">Post-POC</span></div><div class="title">Trust & safety</div></div>
+  </div>
+
+  <div class="group-title">System / cross-cutting — appears everywhere, not staged</div>
+  <div class="grid" style="max-width:400px;">
+    <div class="node"><div class="id-row"><span class="id">S3</span><span class="tag poc">POC</span></div><div class="title">Loading / empty / error</div></div>
+    <div class="node"><div class="id-row"><span class="id">S4</span><span class="tag poc">POC</span></div><div class="title">Confirmation & action sheets</div></div>
+  </div>
+</section>
+
+<footer>
+  Screen IDs (<code>O#, L#, B#, P#, N#, C#, S#</code>) match <code>product/information-architecture.md §4</code> — cite them when building Figma frames so this stays traceable both ways. Source docs: <code>journeys-and-screens.md</code>, <code>information-architecture.md</code>, <code>design/design-decision-log.md</code>.
+</footer>
+
+<script>
+  const buttons = document.querySelectorAll('#stageNav button');
+  const stages = document.querySelectorAll('.stage');
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const target = btn.dataset.stage;
+      stages.forEach(s => {
+        s.hidden = !(target === 'all' || s.dataset.stage === target);
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

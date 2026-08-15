@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stacks — IA Wireframe (iOS)</title>
+<style>
+  :root{
+    --ink:#1c1c1e; --ink2:#3a3a3c; --muted:#8e8e93; --muted2:#aeaeb2;
+    --line:#d1d1d6; --line2:#e5e5ea; --bg:#f2f2f7; --card:#ffffff; --fill:#e9e9ee;
+    --tint:#5b6470;            /* wireframe accent — deliberately muted, not brand */
+    --s-available:#4b7a52; --s-requested:#9a7b2e; --s-out:#5a6b8c;
+    --s-return:#3f6a90; --s-overdue:#a3503f; --s-unavail:#7a7a7f;
+    --radius:14px;
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;}
+  body{
+    font-family:var(--font); background:#c8ccd3; color:var(--ink);
+    display:flex; align-items:center; justify-content:center;
+    padding:0 20px; min-height:100%; overflow:auto;
+  }
+  /* stage: info panel beside the phone; stacks under it when the viewport is narrow */
+  .stage{display:flex;flex-direction:row;align-items:center;gap:44px;}
+  .side{display:flex;flex-direction:column;gap:18px;max-width:300px;text-align:left;flex:0 0 auto;}
+  .caption{color:#3a3f47;font-size:13px;line-height:1.55;}
+  .caption b{color:#20242b;}
+  .kicker{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:#697280;font-weight:700;margin-bottom:7px;}
+  @media (max-width:840px){
+    .stage{flex-direction:column;gap:16px;}
+    .side{max-width:393px;text-align:center;order:-1;}
+  }
+  /* ---- phone frame — iPhone 14/15 logical size 393 × 852 (≈19.5:9) ---- */
+  /* holder reserves the SCALED layout box so the page never overflows; phone scales inside it */
+  .phone-holder{width:calc(393px * var(--s,1));height:calc(852px * var(--s,1));flex:0 0 auto;}
+  .phone{
+    width:393px; height:852px; aspect-ratio:393/852; background:var(--bg); border-radius:47px;
+    box-shadow:0 0 0 11px #1b1d22, 0 22px 60px rgba(0,0,0,.42);
+    position:relative; overflow:hidden; display:flex; flex-direction:column; flex:0 0 auto;
+    transform:scale(var(--s,1)); transform-origin:top left;
+  }
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:150px;height:31px;background:#1b1d22;border-radius:0 0 20px 20px;z-index:60;}
+  .statusbar{height:52px;flex:0 0 52px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 7px;font-size:14px;font-weight:600;color:var(--ink);z-index:50;}
+  .statusbar .r{display:flex;gap:6px;align-items:center;}
+  .statusbar svg{display:block;}
+
+  /* ---- scroll area ---- */
+  .screen{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;position:relative;-webkit-overflow-scrolling:touch;}
+  .screen::-webkit-scrollbar{display:none;}
+
+  /* ---- top app bar ---- */
+  .appbar{padding:4px 20px 6px;background:var(--bg);position:sticky;top:0;z-index:30;}
+  .appbar .row{display:flex;align-items:center;justify-content:space-between;min-height:40px;}
+  .appbar .tools{display:flex;gap:16px;align-items:center;}
+  .tool{width:30px;height:30px;display:flex;align-items:center;justify-content:center;color:var(--tint);position:relative;cursor:pointer;}
+  .tool svg{width:23px;height:23px;}
+  .largetitle{font-size:32px;font-weight:800;letter-spacing:-.6px;margin:2px 0 4px;}
+  .subtitle{font-size:13px;color:var(--muted);margin-bottom:8px;}
+  .badge-dot{position:absolute;top:-2px;right:-3px;min-width:17px;height:17px;padding:0 4px;background:var(--s-overdue);color:#fff;border-radius:9px;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg);}
+
+  /* ---- nav bar (pushed screens) ---- */
+  .navbar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;background:var(--bg);position:sticky;top:0;z-index:30;border-bottom:.5px solid var(--line2);}
+  .navbtn{display:flex;align-items:center;gap:2px;color:var(--tint);font-size:16px;cursor:pointer;padding:6px 8px;min-width:64px;}
+  .navbtn.right{justify-content:flex-end;}
+  .navtitle{font-size:16px;font-weight:700;}
+  .navbar svg{width:19px;height:19px;}
+
+  /* ---- content ---- */
+  .body{padding:0 16px 30px;}
+  .section-h{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:20px 4px 9px;}
+
+  /* segmented control */
+  .segmented{display:flex;background:var(--fill);border-radius:9px;padding:2px;margin:6px 0 10px;}
+  .segmented button{flex:1;border:0;background:transparent;padding:7px 0;font-size:13.5px;font-weight:600;color:var(--ink2);border-radius:7px;font-family:var(--font);}
+  .segmented button.on{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12);}
+
+  /* filter chips */
+  .chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;}
+  .chips::-webkit-scrollbar{display:none;}
+  .chip{flex:0 0 auto;border:1px solid var(--line);background:#fff;border-radius:16px;padding:6px 13px;font-size:13px;color:var(--ink2);}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+  /* book grid */
+  .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:4px;}
+  .gcard{cursor:pointer;}
+  .cover{aspect-ratio:2/3;border-radius:7px;background:repeating-linear-gradient(135deg,#e4e4ea,#e4e4ea 7px,#dedee4 7px,#dedee4 14px);border:1px solid var(--line);display:flex;align-items:flex-end;padding:7px;position:relative;overflow:hidden;}
+  .cover .spine{position:absolute;left:0;top:0;bottom:0;width:6px;background:#cfcfd6;border-right:1px solid #c2c2c9;}
+  .cover .ct{font-size:9.5px;line-height:1.15;font-weight:700;color:#54545a;background:rgba(255,255,255,.82);border-radius:3px;padding:2px 3px;}
+  .gcard .gt{font-size:11.5px;font-weight:600;margin:5px 1px 0;line-height:1.2;color:var(--ink);}
+  .gcard .ga{font-size:10.5px;color:var(--muted);margin:1px 1px 0;}
+
+  /* list rows */
+  .row-card{display:flex;gap:12px;background:var(--card);border:1px solid var(--line2);border-radius:var(--radius);padding:11px;margin-bottom:10px;align-items:center;cursor:pointer;}
+  .row-cover{flex:0 0 46px;height:66px;border-radius:5px;background:repeating-linear-gradient(135deg,#e4e4ea,#e4e4ea 6px,#dedee4 6px,#dedee4 12px);border:1px solid var(--line);position:relative;}
+  .row-cover .spine{position:absolute;left:0;top:0;bottom:0;width:5px;background:#cfcfd6;}
+  .row-main{flex:1;min-width:0;}
+  .row-main .t{font-size:15px;font-weight:600;line-height:1.2;}
+  .row-main .a{font-size:12.5px;color:var(--muted);margin-top:1px;}
+  .row-sub{font-size:12px;color:var(--ink2);margin-top:5px;}
+  .chev{color:var(--muted2);flex:0 0 auto;}
+
+  /* state badge */
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 8px 3px 6px;border-radius:20px;background:var(--fill);color:var(--ink2);margin-top:6px;}
+  .badge .b-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);}
+  .badge svg{width:11px;height:11px;}
+  [data-st="available"]{background:#e9f0ea;color:var(--s-available);} [data-st="available"] .b-dot{background:var(--s-available);}
+  [data-st="requested"]{background:#f4efe1;color:var(--s-requested);} [data-st="requested"] .b-dot{background:var(--s-requested);}
+  [data-st="checked_out"]{background:#e9edf3;color:var(--s-out);} [data-st="checked_out"] .b-dot{background:var(--s-out);}
+  [data-st="return_pending"]{background:#e6eef4;color:var(--s-return);} [data-st="return_pending"] .b-dot{background:var(--s-return);}
+  [data-st="overdue"]{background:#f5e7e4;color:var(--s-overdue);} [data-st="overdue"] .b-dot{background:var(--s-overdue);}
+  [data-st="ready"]{background:#e5efe9;color:#3f7d6a;} [data-st="ready"] .b-dot{background:#3f7d6a;}
+  [data-st="unavailable"]{background:#eeeeef;color:var(--s-unavail);} [data-st="unavailable"] .b-dot{background:var(--s-unavail);}
+  .cover .badge{position:absolute;top:5px;left:5px;margin:0;transform:scale(.82);transform-origin:top left;padding:2px 6px;}
+
+  /* buttons */
+  .btn{display:block;width:100%;text-align:center;border:0;border-radius:12px;padding:14px;font-size:16px;font-weight:600;font-family:var(--font);cursor:pointer;margin-top:10px;}
+  .btn.primary{background:var(--tint);color:#fff;}
+  .btn.tint{background:var(--fill);color:var(--tint);}
+  .btn.ghost{background:transparent;color:var(--tint);}
+  .btn.danger{background:#f5e7e4;color:var(--s-overdue);}
+  .btn.sim{background:transparent;color:var(--muted);border:1.5px dashed var(--muted2);font-size:13.5px;font-weight:600;padding:11px;}
+  .btn.sim::before{content:"⟳ demo · ";opacity:.8;}
+  .btn.sm{padding:9px;font-size:14px;margin-top:8px;}
+  .btn-row{display:flex;gap:10px;}
+  .btn-row .btn{margin-top:10px;}
+
+  /* detail */
+  .detail-head{display:flex;gap:16px;margin:8px 0 6px;}
+  .detail-cover{flex:0 0 96px;height:140px;border-radius:8px;background:repeating-linear-gradient(135deg,#e4e4ea,#e4e4ea 8px,#dedee4 8px,#dedee4 16px);border:1px solid var(--line);position:relative;}
+  .detail-cover .spine{position:absolute;left:0;top:0;bottom:0;width:7px;background:#cfcfd6;}
+  .detail-title{font-size:21px;font-weight:800;letter-spacing:-.3px;line-height:1.15;}
+  .detail-author{font-size:14px;color:var(--muted);margin-top:3px;}
+  .meta-block{background:var(--card);border:1px solid var(--line2);border-radius:var(--radius);padding:14px;margin-top:14px;}
+  .meta-row{display:flex;justify-content:space-between;font-size:14px;padding:7px 0;border-bottom:.5px solid var(--line2);}
+  .meta-row:last-child{border-bottom:0;}
+  .meta-row .k{color:var(--muted);}
+  .meta-row .v{color:var(--ink);font-weight:500;text-align:right;}
+  .callout{background:var(--card);border:1px solid var(--line2);border-radius:var(--radius);padding:14px;margin-top:14px;font-size:14px;}
+  .callout .big{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;}
+  .callout .big svg{width:19px;height:19px;flex:0 0 auto;}
+  .hist-row{display:flex;justify-content:space-between;font-size:13.5px;color:var(--ink2);padding:8px 0;border-bottom:.5px solid var(--line2);}
+  .hist-row:last-child{border-bottom:0;}
+
+  /* notifications */
+  .notif{display:flex;gap:12px;background:var(--card);border:1px solid var(--line2);border-radius:var(--radius);padding:13px;margin-bottom:10px;cursor:pointer;align-items:flex-start;}
+  .notif .ic{flex:0 0 34px;height:34px;border-radius:50%;background:var(--fill);display:flex;align-items:center;justify-content:center;color:var(--tint);}
+  .notif .ic svg{width:18px;height:18px;}
+  .notif .nt{font-size:14px;line-height:1.3;}
+  .notif .nm{font-size:12px;color:var(--muted);margin-top:3px;}
+  .notif.unread{border-left:3px solid var(--tint);}
+
+  /* empty */
+  .empty{text-align:center;padding:50px 24px;color:var(--muted);}
+  .empty .e-ic{font-size:34px;opacity:.5;}
+  .empty .e-ic svg{width:40px;height:40px;}
+  /* safety: any icon dropped into a round avatar sizes sanely */
+  .row-card>div:first-child svg,.ic-avatar svg{width:22px;height:22px;}
+  .empty .e-t{font-size:16px;font-weight:600;color:var(--ink2);margin-top:12px;}
+  .empty .e-s{font-size:13.5px;margin-top:4px;line-height:1.4;}
+
+  /* tab bar */
+  .tabbar{flex:0 0 84px;background:rgba(248,248,250,.94);backdrop-filter:blur(12px);border-top:.5px solid var(--line);display:flex;padding:8px 0 26px;z-index:40;}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10.5px;font-weight:500;cursor:pointer;}
+  .tab.on{color:var(--tint);}
+  .tab svg{width:26px;height:26px;}
+
+  /* sheet */
+  .sheet-scrim{position:absolute;inset:0;background:rgba(0,0,0,.32);z-index:80;opacity:0;pointer-events:none;transition:opacity .25s;}
+  .sheet-scrim.on{opacity:1;pointer-events:auto;}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:var(--bg);border-radius:20px 20px 0 0;z-index:81;transform:translateY(102%);transition:transform .28s cubic-bezier(.32,.72,0,1);padding:10px 18px calc(20px + env(safe-area-inset-bottom));max-height:80%;overflow-y:auto;}
+  .sheet.on{transform:translateY(0);}
+  .grabber{width:38px;height:5px;border-radius:3px;background:var(--line);margin:6px auto 12px;}
+  .sheet h3{font-size:18px;font-weight:800;margin:2px 0 2px;}
+  .sheet p{font-size:13.5px;color:var(--muted);margin:0 0 8px;}
+  .opt{width:100%;text-align:left;background:var(--card);border:1px solid var(--line2);border-radius:12px;padding:14px;font-size:15px;font-family:var(--font);margin-top:9px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+  .opt .os{font-size:12.5px;color:var(--muted);}
+  .opt.icon{gap:12px;justify-content:flex-start;} .opt.icon svg{width:20px;height:20px;color:var(--tint);}
+  .lend-input{width:100%;padding:13px;border:1px solid var(--line);border-radius:12px;font-size:15px;font-family:var(--font);background:#fff;margin-top:2px;}
+
+  /* toast */
+  .toast{position:absolute;left:50%;bottom:104px;transform:translateX(-50%) translateY(20px);background:rgba(28,28,30,.94);color:#fff;font-size:13.5px;font-weight:500;padding:11px 18px;border-radius:22px;z-index:90;opacity:0;pointer-events:none;transition:.28s;max-width:300px;text-align:center;}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .pill-inline{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--ink2);background:var(--fill);border-radius:12px;padding:3px 9px;}
+</style>
+</head>
+<body>
+  <div class="stage">
+   <div class="side">
+    <div class="caption">
+      <div class="kicker">Stacks · iOS wireframe</div>
+      <b>Low-fidelity, structure over style.</b> Three tabs (Library · Browse · Profile) + global tools (Add · 🔔 · Search).
+      The full circulation loop is clickable both directions. Dashed <b>“demo”</b> buttons simulate the other person on a single device.
+    </div>
+    <div class="caption" style="opacity:.85">
+      <div class="kicker">Try this</div>
+      Open the 🔔 bell → approve <b>Maya’s</b> request on <i>The Overstory</i> → set a due date → it lands under <b>My Shelf · On loan</b>.
+      Or in <b>Browse</b>, request <i>Klara and the Sun</i> and walk the borrower side from <b>Borrowed</b>.
+    </div>
+   </div>
+
+  <div class="phone-holder">
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="statusbar">
+      <span id="clock">9:41</span>
+      <span class="r">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="4.5" y="5" width="3" height="7" rx="1"/><rect x="9" y="2.5" width="3" height="9.5" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+        <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor"><path d="M8.5 2.4c2 0 3.9.8 5.3 2.1l1-1.1A9 9 0 0 0 8.5.9 9 9 0 0 0 2.2 3.4l1 1.1A7.5 7.5 0 0 1 8.5 2.4zM8.5 6c1.1 0 2.1.4 2.9 1.2l1-1.1A5.7 5.7 0 0 0 8.5 4.5 5.7 5.7 0 0 0 4.6 6.1l1 1.1A4.2 4.2 0 0 1 8.5 6zm0 3.5 1.7-1.9a3 3 0 0 0-3.4 0z"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="1" y="1" width="21" height="10" rx="3" stroke="currentColor" stroke-opacity=".45"/><rect x="2.5" y="2.5" width="16" height="7" rx="1.5" fill="currentColor"/><rect x="23.5" y="4" width="1.6" height="4" rx="1" fill="currentColor" fill-opacity=".45"/></svg>
+      </span>
+    </div>
+
+    <div class="screen" id="screen"></div>
+    <div id="tabbar-slot"></div>
+
+    <div class="sheet-scrim" id="scrim" onclick="closeSheet()"></div>
+    <div class="sheet" id="sheet"></div>
+    <div class="toast" id="toast"></div>
+  </div>
+  </div>
+  </div>
+
+<script>
+/* ============================== STATE ============================== */
+const ME = "You";
+const today = "Aug 8";
+
+let S = {};
+function seed(){
+  S = {
+    tab:'library', seg:'shelf', filter:'all',
+    stack:[], sheet:null, notifOpen:false, toast:null,
+    myBooks:[
+      {id:'m1', t:'The Overstory', a:'Richard Powers', st:'requested', who:'Maya R.', due:null},
+      {id:'m2', t:'Sapiens', a:'Y. N. Harari', st:'checked_out', who:'Leo M.', due:'Aug 20'},
+      {id:'m3', t:'Name of the Wind', a:'P. Rothfuss', st:'overdue', who:'Priya S.', due:'Aug 2'},
+      {id:'m4', t:'Educated', a:'Tara Westover', st:'unavailable', who:null, due:null},
+      {id:'m5', t:'Pachinko', a:'Min Jin Lee', st:'available', who:null, due:null},
+      {id:'m6', t:'Dune', a:'Frank Herbert', st:'available', who:null, due:null},
+      {id:'m7', t:'Circe', a:'Madeline Miller', st:'available', who:null, due:null},
+      {id:'m8', t:'The Goldfinch', a:'Donna Tartt', st:'available', who:null, due:null},
+      {id:'m9', t:'Normal People', a:'Sally Rooney', st:'available', who:null, due:null},
+      {id:'m10',t:'A Gentleman in Moscow', a:'Amor Towles', st:'available', who:null, due:null},
+    ],
+    // neighbor-owned copies (Browse). holder='you' => you hold it. mine=your pending request.
+    neighborBooks:[
+      {id:'n1', t:'Klara and the Sun', a:'K. Ishiguro', owner:'Devi P.', st:'available', holder:null, mine:false, due:null},
+      {id:'n2', t:'Tomorrow ×3', a:'G. Zevin', owner:'Devi P.', st:'available', holder:null, mine:false, due:null},
+      {id:'n3', t:'Song of Achilles', a:'M. Miller', owner:'Devi P.', st:'checked_out', holder:'other', mine:false, due:null},
+      {id:'n4', t:'Cloud Cuckoo Land', a:'A. Doerr', owner:'Maya R.', st:'available', holder:null, mine:false, due:null},
+      {id:'n5', t:'Babel', a:'R. F. Kuang', owner:'Maya R.', st:'unavailable', holder:null, mine:false, due:null},
+      {id:'n6', t:'Project Hail Mary', a:'Andy Weir', owner:'Devi P.', st:'checked_out', holder:'you', mine:true, due:'Aug 18'},
+    ],
+    connReq:{name:'Tomas V.', mutual:2, pending:true},
+    approvals:[], // borrower-side outcome notifs
+  };
+}
+seed();
+
+const NEIGHBORS = [
+  {name:'Devi P.', dist:'0.3 mi', books:['n1','n2','n3','n6']},
+  {name:'Maya R.', dist:'0.5 mi', books:['n4','n5']},
+];
+
+/* ============================== HELPERS ============================== */
+const $=id=>document.getElementById(id);
+const byId=(arr,id)=>arr.find(x=>x.id===id);
+function initials(t){return t.replace(/[^A-Za-z0-9 ]/g,'').split(' ').filter(Boolean).slice(0,3).map(w=>w[0]).join('');}
+
+const LABELS = {
+  // owner-facing labels
+  owner:{available:'Available',requested:'Requested',ready:'Ready for pickup',checked_out:'Checked out',return_pending:'Return pending',overdue:'Overdue',unavailable:'Not lending'},
+  // borrower/neighbor-facing
+  neighbor:{available:'Available',requested:'On hold',ready:'On hold',checked_out:'Checked out',return_pending:'Checked out',overdue:'Checked out',unavailable:'Not lending'},
+  mine:{requested:'Request pending',ready:'Approved · arrange pickup',checked_out:'Borrowed',return_pending:'Return submitted',overdue:'Overdue'},
+};
+const CONNECTIONS=['Devi P.','Maya R.','Leo M.','Priya S.'];
+const ICON = {
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  hand:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8a6 6 0 0 0 6 6h1a6 6 0 0 0 6-6v-3"/></svg>',
+  alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
+  person:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
+  book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z"/><path d="M4 5v14"/></svg>',
+};
+function badge(st,scope){
+  const lbl=(LABELS[scope]||LABELS.owner)[st]||st;
+  let ic='';
+  if(st==='overdue') ic=ICON.alert; else if(st==='return_pending') ic=ICON.clock;
+  return `<span class="badge" data-st="${st}">${ic||'<span class="b-dot"></span>'}${lbl}</span>`;
+}
+const ONLOAN=['checked_out','overdue','return_pending'];
+
+/* actionable notifications */
+function notifs(){
+  const out=[];
+  S.myBooks.forEach(b=>{ if(b.st==='requested') out.push({k:'req',b,txt:`<b>${b.who}</b> wants to borrow <b>${b.t}</b>`,m:'2h ago',ic:ICON.hand}); });
+  S.myBooks.forEach(b=>{ if(b.st==='return_pending') out.push({k:'confirm',b,txt:`<b>${b.who}</b> marked <b>${b.t}</b> returned — confirm receipt?`,m:'just now',ic:ICON.check}); });
+  if(S.connReq.pending) out.push({k:'conn',txt:`<b>${S.connReq.name}</b> wants to connect · ${S.connReq.mutual} mutual`,m:'1d ago',ic:ICON.person});
+  S.approvals.forEach(x=>out.push(x));
+  return out;
+}
+function badgeCount(){return notifs().length;}
+
+/* ============================== NAV ============================== */
+function go(tab){S.tab=tab;S.stack=[];S.notifOpen=false;render();}
+function push(screen,id){S.stack.push({screen,id});S.notifOpen=false;render();$('screen').scrollTop=0;}
+function pop(){S.stack.pop();render();}
+function openNotifs(){S.notifOpen=true;render();$('screen').scrollTop=0;}
+function openSheet(type,id){S.sheet={type,id};render();requestAnimationFrame(()=>{$('scrim').classList.add('on');$('sheet').classList.add('on');});}
+function closeSheet(){$('scrim').classList.remove('on');$('sheet').classList.remove('on');setTimeout(()=>{S.sheet=null;},260);}
+function toast(msg){$('toast').textContent=msg;$('toast').classList.add('on');clearTimeout(window._tt);window._tt=setTimeout(()=>$('toast').classList.remove('on'),2100);}
+
+/* ============================== ACTIONS ============================== */
+// owner side — TWO STEP: approve reserves the copy (ready), handover starts the loan + due clock
+function approve(id){ const b=byId(S.myBooks,id); b.st='ready'; render(); toast(`Approved — reserved for ${b.who}. Hand it over when you meet.`); }
+function handover(id){ S.lendTo=null; openSheet('due',id); }
+function cancelReady(id){ const b=byId(S.myBooks,id); b.st='available'; b.who=null; b.due=null; render(); toast('Loan cancelled — back on your shelf'); }
+// proactive lend — no request needed; borrower may be a connection or someone off-app
+function lend(id){ openSheet('lend',id); }
+function pickBorrower(id,name,offApp){ S.lendTo={id,name,offApp}; openSheet('due',id); }
+function pickBorrowerCustom(id){ const el=document.getElementById('lendName'); const name=(el&&el.value&&el.value.trim())||'A neighbor'; S.lendTo={id,name,offApp:true}; openSheet('due',id); }
+// shared: set the loan live (from handover of an approved request, OR a proactive lend)
+function doDue(id,due){ const b=byId(S.myBooks,id); if(S.lendTo&&S.lendTo.id===id){ b.who=S.lendTo.name; b.offApp=S.lendTo.offApp; S.lendTo=null; } b.st='checked_out'; b.due=due; closeSheet(); render(); toast(`Checked out to ${b.who}${due?` · due ${due}`:''}`); }
+function decline(id){ openSheet('decline',id); }
+function doDecline(id,next){ const b=byId(S.myBooks,id); b.st=next; b.who=null; b.due=null; closeSheet(); render(); toast(next==='available'?'Returned to your shelf':'Marked not for lending'); }
+function simBorrowerReturn(id){ const b=byId(S.myBooks,id); b.st='return_pending'; render(); toast(`${b.who} marked it returned`); }
+function confirmReturn(id){ const b=byId(S.myBooks,id); b.st='available'; b.who=null; b.due=null; b.offApp=false; render(); toast('Return confirmed — back on your shelf'); }
+function disputeReturn(id){ const b=byId(S.myBooks,id); b.st='checked_out'; render(); toast(`Bounced back to checked out`); }
+function toggleUnavail(id){ const b=byId(S.myBooks,id); b.st = b.st==='unavailable'?'available':'unavailable'; render(); toast(b.st==='unavailable'?'Marked not for lending':'Back on your shelf'); }
+
+// borrower side
+function requestBorrow(id){ const b=byId(S.neighborBooks,id); b.st='requested'; b.mine=true; render(); toast('Request sent to '+b.owner); }
+function cancelRequest(id){ const b=byId(S.neighborBooks,id); b.st='available'; b.mine=false; render(); toast('Request cancelled'); }
+function simOwnerApprove(id){ const b=byId(S.neighborBooks,id); b.st='ready'; b.holder=null;
+  S.approvals.push({k:'appr',b,txt:`<b>${b.owner}</b> approved your request for <b>${b.t}</b> · arrange pickup`,m:'just now',ic:ICON.check});
+  render(); toast(`${b.owner} approved — arrange the handoff`); }
+function simHandover(id){ const b=byId(S.neighborBooks,id); b.st='checked_out'; b.holder='you'; b.due='Aug 22'; render(); toast(`Picked up from ${b.owner} · due Aug 22`); }
+function markReturned(id){ const b=byId(S.neighborBooks,id); b.st='return_pending'; render(); toast('Return submitted — awaiting confirmation'); }
+function simOwnerConfirm(id){ const b=byId(S.neighborBooks,id); b.st='available'; b.holder=null; b.mine=false; b.due=null; render(); toast(`${b.owner} confirmed the return`); }
+
+// connection
+function acceptConn(){ S.connReq.pending=false; render(); toast(`Connected with ${S.connReq.name}`); }
+function declineConn(){ S.connReq.pending=false; render(); toast('Request declined'); }
+
+function resetDemo(){ seed(); render(); toast('Demo reset'); }
+
+/* ============================== RENDER ============================== */
+function coverBox(b,cls,scope,st){
+  return `<div class="${cls}"><div class="spine"></div>${st?badge(st,scope):''}<span class="ct">${b.t}</span></div>`;
+}
+
+function render(){
+  const scr=$('screen');
+  if(S.notifOpen){ scr.innerHTML=renderNotifs(); $('tabbar-slot').innerHTML=''; renderSheet(); return; }
+  if(S.stack.length){ const top=S.stack[S.stack.length-1];
+    scr.innerHTML = ({ownerDetail:renderOwnerDetail,borrowerDetail:renderBorrowerDetail,neighborLib:renderNeighborLib})[top.screen](top.id);
+    $('tabbar-slot').innerHTML=''; renderSheet(); return;
+  }
+  scr.innerHTML = ({library:renderLibrary,browse:renderBrowse,profile:renderProfile})[S.tab]();
+  $('tabbar-slot').innerHTML=renderTabbar();
+  renderSheet();
+}
+
+function tools(){
+  const n=badgeCount();
+  return `<div class="tools">
+    <div class="tool" onclick="toast('Search — scoped to this tab')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
+    <div class="tool" onclick="openNotifs()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+      ${n?`<span class="badge-dot">${n}</span>`:''}</div>
+    <div class="tool" onclick="openSheet('add')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div>
+  </div>`;
+}
+function appbar(title,sub){
+  return `<div class="appbar"><div class="row"><div></div>${tools()}</div>
+    <div class="largetitle">${title}</div>${sub?`<div class="subtitle">${sub}</div>`:''}</div>`;
+}
+function navbar(title,right){
+  return `<div class="navbar">
+    <div class="navbtn" onclick="pop()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Back</div>
+    <div class="navtitle">${title||''}</div>
+    <div class="navbtn right">${right||''}</div></div>`;
+}
+function renderTabbar(){
+  const t=(id,label,svg)=>`<div class="tab ${S.tab===id&&!S.stack.length&&!S.notifOpen?'on':''}" onclick="go('${id}')">${svg}<span>${label}</span></div>`;
+  return `<div class="tabbar">
+    ${t('library','Library','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h5v16H4zM10 4h4v16h-4zM15 5l4 1-3 14-4-1z"/></svg>')}
+    ${t('browse','Browse','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>')}
+    ${t('profile','Profile','<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>')}
+  </div>`;
+}
+
+/* ---------- LIBRARY (home) ---------- */
+function renderLibrary(){
+  let body='';
+  const seg=`<div class="segmented">
+    <button class="${S.seg==='shelf'?'on':''}" onclick="S.seg='shelf';render()">My Shelf</button>
+    <button class="${S.seg==='borrowed'?'on':''}" onclick="S.seg='borrowed';render()">Borrowed</button></div>`;
+
+  if(S.seg==='shelf'){
+    const chip=(id,l)=>`<div class="chip ${S.filter===id?'on':''}" onclick="S.filter='${id}';render()">${l}</div>`;
+    const onloanN=S.myBooks.filter(b=>ONLOAN.includes(b.st)).length;
+    body+=`<div class="chips">${chip('all','All '+S.myBooks.length)}${chip('available','Available')}${chip('onloan','On loan '+(onloanN?onloanN:''))}${chip('unavailable','Not lending')}</div>`;
+    let list=S.myBooks;
+    if(S.filter==='available') list=list.filter(b=>b.st==='available');
+    else if(S.filter==='onloan') list=list.filter(b=>ONLOAN.includes(b.st));
+    else if(S.filter==='unavailable') list=list.filter(b=>b.st==='unavailable');
+    if(!list.length){ body+=emptyState('No books here','Try another filter, or add books to your shelf.'); }
+    else{
+      body+='<div class="grid">'+list.map(b=>`<div class="gcard" onclick="push('ownerDetail','${b.id}')">
+        ${coverBox(b,'cover','owner',b.st!=='available'?b.st:null)}
+        <div class="gt">${b.t}</div><div class="ga">${b.a}</div></div>`).join('')+'</div>';
+    }
+  } else {
+    // Borrowed segment: held + pending requests
+    const held=S.neighborBooks.filter(b=>b.holder==='you'&&['checked_out','overdue','return_pending'].includes(b.st));
+    const pend=S.neighborBooks.filter(b=>b.mine&&(b.st==='requested'||b.st==='ready'));
+    if(!held.length&&!pend.length){ body+=emptyState('Nothing borrowed yet','Browse a neighbor’s shelf and request something to read.'); }
+    if(pend.length){ body+='<div class="section-h">Requests & pickups</div>'+pend.map(b=>rowBorrowed(b)).join(''); }
+    if(held.length){ body+='<div class="section-h">In your hands</div>'+held.map(b=>rowBorrowed(b)).join(''); }
+  }
+  return appbar('Library','Your books — owned & borrowed')+`<div class="body">${seg}${body}</div>`;
+}
+function rowBorrowed(b){
+  const scope = b.mine&&b.st==='requested' ? 'mine' : (b.st==='return_pending'?'mine':'mine');
+  let sub='', actions='';
+  if(b.st==='requested'){ sub=`From ${b.owner}`; actions=`<button class="btn sm tint" onclick="cancelRequest('${b.id}')">Cancel request</button><button class="btn sm sim" onclick="simOwnerApprove('${b.id}')">${b.owner} approves</button>`; }
+  else if(b.st==='ready'){ sub=`Approved by ${b.owner} · arrange pickup`; actions=`<button class="btn sm sim" onclick="simHandover('${b.id}')">${b.owner} hands it over</button>`; }
+  else if(b.st==='checked_out'||b.st==='overdue'){ sub=`From ${b.owner} · due ${b.due}`; actions=`<button class="btn sm primary" onclick="markReturned('${b.id}')">Mark returned</button>`; }
+  else if(b.st==='return_pending'){ sub=`From ${b.owner} · awaiting ${b.owner}’s confirm`; actions=`<button class="btn sm sim" onclick="simOwnerConfirm('${b.id}')">${b.owner} confirms receipt</button>`; }
+  return `<div class="row-card" style="flex-wrap:wrap">
+    <div class="row-cover"><div class="spine"></div></div>
+    <div class="row-main"><div class="t">${b.t}</div><div class="a">${b.a}</div>
+      ${badge(b.st,'mine')}<div class="row-sub">${sub}</div></div>
+    <div style="flex-basis:100%;display:flex;gap:8px">${actions}</div></div>`;
+}
+
+/* ---------- BROWSE ---------- */
+function renderBrowse(){
+  let body='<div class="section-h">Connected libraries</div>';
+  body+=NEIGHBORS.map(n=>{
+    const avail=n.books.map(id=>byId(S.neighborBooks,id)).filter(b=>b.st==='available').length;
+    return `<div class="row-card" onclick="push('neighborLib','${n.name}')">
+      <div class="ic-avatar" style="flex:0 0 46px;height:46px;border-radius:50%;background:var(--fill);display:flex;align-items:center;justify-content:center;color:var(--tint)">${ICON.person}</div>
+      <div class="row-main"><div class="t">${n.name}</div><div class="a">${n.dist} away · ${n.books.length} books</div>
+        <div class="row-sub"><span class="pill-inline">${avail} available now</span></div></div>
+      <div class="chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg></div></div>`;
+  }).join('');
+  body+=`<div class="callout" style="border-style:dashed;color:var(--muted)"><b>Search across libraries</b> and <b>neighborhood map</b> — fast-follow / post-POC. Reserved slot in Browse.</div>`;
+  return appbar('Browse','Neighbors you’re connected to')+`<div class="body">${body}</div>`;
+}
+function renderNeighborLib(name){
+  const n=NEIGHBORS.find(x=>x.name===name);
+  const books=n.books.map(id=>byId(S.neighborBooks,id));
+  const right=`<div class="tool" onclick="openNotifs()" style="width:auto">🔔</div>`;
+  let body='<div class="grid">'+books.map(b=>{
+    const scope = b.mine?'mine':'neighbor';
+    const showBadge = b.st!=='available';
+    return `<div class="gcard" onclick="push('borrowerDetail','${b.id}')">
+      ${coverBox(b,'cover',scope,showBadge?b.st:null)}
+      <div class="gt">${b.t}</div><div class="ga">${b.a}</div></div>`;
+  }).join('')+'</div>';
+  return navbar(name)+`<div class="body"><div class="largetitle" style="font-size:26px">${name}’s shelf</div><div class="subtitle">${n.dist} away · ${books.length} books</div>${body}</div>`;
+}
+
+/* ---------- OWNER DETAIL (L10) ---------- */
+function renderOwnerDetail(id){
+  const b=byId(S.myBooks,id);
+  let cta='';
+  if(b.st==='requested'){
+    cta=`<div class="callout"><div class="big">${ICON.hand}Requested by ${b.who}</div>
+      <div style="color:var(--muted);font-size:13px;margin-top:6px">The copy is locked while you decide — no one else can request it.</div>
+      <div class="btn-row"><button class="btn primary" onclick="approve('${b.id}')">Approve</button>
+      <button class="btn danger" onclick="decline('${b.id}')">Decline</button></div></div>`;
+  } else if(b.st==='ready'){
+    cta=`<div class="callout"><div class="big">${ICON.check}Ready for pickup</div>
+      <div style="color:var(--muted);font-size:13px;margin-top:6px">Reserved for ${b.who}. Handing it over is what starts the loan and the due-date clock — coordinate the swap however you like.</div>
+      <button class="btn primary" onclick="handover('${b.id}')">Mark as handed over</button>
+      <button class="btn ghost" onclick="cancelReady('${b.id}')">Cancel</button></div>`;
+  } else if(b.st==='checked_out'||b.st==='overdue'){
+    const sim = b.offApp?'':`<button class="btn sim" onclick="simBorrowerReturn('${b.id}')">${b.who} marks it returned</button>`;
+    const note = b.offApp?`<div style="font-size:12px;color:var(--muted);margin-top:6px">Off-app loan — you’ll mark the return yourself.</div>`:'';
+    cta=`<div class="callout"><div class="big">${b.st==='overdue'?'Overdue — ':''}Checked out to ${b.who}${b.offApp?' · not on Stacks':''}</div>
+      <div style="color:var(--muted);font-size:13px;margin-top:6px">${b.due?`Due ${b.due}`:'No due date · open-ended'}</div>${note}
+      <button class="btn tint" onclick="confirmReturn('${b.id}')">Mark returned directly</button>${sim}</div>`;
+  } else if(b.st==='return_pending'){
+    cta=`<div class="callout"><div class="big">${ICON.clock}${b.who} marked this returned</div>
+      <div style="color:var(--muted);font-size:13px;margin-top:6px">Confirm you’ve got it back, or say it hasn’t arrived.</div>
+      <div class="btn-row"><button class="btn primary" onclick="confirmReturn('${b.id}')">Confirm returned</button>
+      <button class="btn danger" onclick="disputeReturn('${b.id}')">Didn’t receive it</button></div></div>`;
+  } else {
+    const lendBtn = b.st!=='unavailable'?`<button class="btn primary" onclick="lend('${b.id}')">Lend to someone</button>`:'';
+    cta=`<div class="callout">${lendBtn}<button class="btn tint" onclick="toggleUnavail('${b.id}')">${b.st==='unavailable'?'Make available for lending':'Mark not for lending'}</button>
+      <button class="btn ghost" onclick="toast('Edit copy — location, condition, visibility')">Edit your copy</button></div>`;
+  }
+  const hist=`<div class="meta-block"><div class="section-h" style="margin:0 0 4px">Borrow history</div>
+    <div class="hist-row"><span>Leo M.</span><span style="color:var(--muted)">Mar 3 – Mar 28</span></div>
+    <div class="hist-row"><span>Devi P.</span><span style="color:var(--muted)">Jan 10 – Jan 24</span></div></div>`;
+  return navbar('')+`<div class="body">
+    <div class="detail-head"><div class="detail-cover"><div class="spine"></div></div>
+      <div style="flex:1"><div class="detail-title">${b.t}</div><div class="detail-author">${b.a}</div>${badge(b.st,'owner')}
+      <div class="row-sub" style="margin-top:8px;color:var(--muted)">Your copy · Paperback · Good</div></div></div>
+    ${cta}
+    <div class="meta-block">
+      <div class="meta-row"><span class="k">Location</span><span class="v">Living room, shelf 2</span></div>
+      <div class="meta-row"><span class="k">Visibility</span><span class="v">Visible to connections</span></div>
+      <div class="meta-row"><span class="k">Edition</span><span class="v">2019 · W. W. Norton</span></div>
+      <div class="meta-row"><span class="k">ISBN</span><span class="v">978-0393635...</span></div>
+    </div>
+    ${hist}
+  </div>`;
+}
+
+/* ---------- BORROWER DETAIL (B3) ---------- */
+function renderBorrowerDetail(id){
+  const b=byId(S.neighborBooks,id);
+  let cta='';
+  if(b.st==='available'){
+    cta=`<button class="btn primary" onclick="requestBorrow('${b.id}');pop()">Request to borrow</button>
+      <div style="text-align:center;font-size:12.5px;color:var(--muted);margin-top:8px">A low-pressure ask — ${b.owner} approves or not, no obligation.</div>`;
+  } else if(b.mine&&(b.st==='requested'||b.st==='ready')){
+    const rd=b.st==='ready';
+    cta=`<div class="callout"><div class="big">${rd?ICON.check:ICON.clock}${rd?'Approved · arrange pickup':'Request pending'}</div>
+      <div style="color:var(--muted);font-size:13px;margin-top:6px">${rd?`${b.owner} said yes — arrange the handoff. It moves to Library › Borrowed once you have it in hand.`:`Waiting on ${b.owner}. You’ll see it in Library › Borrowed.`}</div>
+      ${rd?'':`<button class="btn tint" onclick="cancelRequest('${b.id}');pop()">Cancel request</button>`}</div>`;
+  } else if(b.holder==='you'){
+    cta=`<div class="callout"><div class="big">Borrowed by you · due ${b.due}</div>
+      <button class="btn primary" onclick="markReturned('${b.id}');pop()">Mark returned</button></div>`;
+  } else if(b.st==='unavailable'){
+    cta=`<div class="callout" style="color:var(--muted)">${b.owner} has this, marked <b>not for lending</b>. No request available.</div>`;
+  } else { // checked out to someone else / on hold
+    const lbl = b.st==='requested'?'On hold':'Checked out';
+    cta=`<div class="callout" style="color:var(--muted)">${lbl} right now — no request button. ${b.st!=='requested'?'You could be notified when it frees up (post-POC).':''}</div>`;
+  }
+  const scope=b.mine?'mine':'neighbor';
+  return navbar('')+`<div class="body">
+    <div class="detail-head"><div class="detail-cover"><div class="spine"></div></div>
+      <div style="flex:1"><div class="detail-title">${b.t}</div><div class="detail-author">${b.a}</div>
+      ${badge(b.st, scope==='mine'?'mine':'neighbor')}
+      <div class="row-sub" style="margin-top:8px;color:var(--muted)">From ${b.owner}’s library</div></div></div>
+    ${cta}
+    <div class="meta-block">
+      <div class="meta-row"><span class="k">Owner</span><span class="v">${b.owner}</span></div>
+      <div class="meta-row"><span class="k">Edition</span><span class="v">First edition</span></div>
+      <div class="meta-row"><span class="k">Condition</span><span class="v">Very good</span></div>
+    </div></div>`;
+}
+
+/* ---------- NOTIFICATIONS (N1) ---------- */
+function renderNotifs(){
+  const list=notifs();
+  let body='';
+  if(!list.length){ body=emptyState('All clear','Nothing needs you right now.'); }
+  else body=list.map(n=>{
+    let onclick='';
+    if(n.k==='req'||n.k==='confirm') onclick=`onclick="S.notifOpen=false;push('ownerDetail','${n.b.id}')"`;
+    else if(n.k==='conn') onclick=`onclick="go('profile')"`;
+    else if(n.k==='appr') onclick=`onclick="S.notifOpen=false;S.tab='library';S.seg='borrowed';render()"`;
+    return `<div class="notif unread" ${onclick}><div class="ic">${n.ic}</div>
+      <div><div class="nt">${n.txt}</div><div class="nm">${n.m} · tap to open</div></div></div>`;
+  }).join('');
+  return `<div class="navbar"><div class="navbtn" onclick="S.notifOpen=false;render()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Done</div><div class="navtitle">Notifications</div><div class="navbtn right"></div></div>
+    <div class="body"><div class="subtitle" style="margin-top:6px">In-app inbox · both roles · POC (no push)</div>${body}</div>`;
+}
+
+/* ---------- PROFILE ---------- */
+function renderProfile(){
+  const conn=`<div class="row-card" onclick="toast('Connection: Devi P.')"><div style="flex:0 0 44px;height:44px;border-radius:50%;background:var(--fill);display:flex;align-items:center;justify-content:center;color:var(--tint)">${ICON.person}</div>
+    <div class="row-main"><div class="t">Devi P.</div><div class="a">0.3 mi · 4 books shared</div></div></div>
+    <div class="row-card" onclick="toast('Connection: Maya R.')"><div style="flex:0 0 44px;height:44px;border-radius:50%;background:var(--fill);display:flex;align-items:center;justify-content:center;color:var(--tint)">${ICON.person}</div>
+    <div class="row-main"><div class="t">Maya R.</div><div class="a">0.5 mi · 2 books shared</div></div></div>`;
+  const req = S.connReq.pending?`<div class="section-h">Connection request</div>
+    <div class="row-card" style="flex-wrap:wrap"><div style="flex:0 0 44px;height:44px;border-radius:50%;background:var(--fill);display:flex;align-items:center;justify-content:center;color:var(--tint)">${ICON.person}</div>
+      <div class="row-main"><div class="t">${S.connReq.name}</div><div class="a">${S.connReq.mutual} mutual connections</div></div>
+      <div style="flex-basis:100%;display:flex;gap:8px"><button class="btn sm primary" onclick="acceptConn()">Accept</button><button class="btn sm tint" onclick="declineConn()">Decline</button></div></div>`:'';
+  return appbar('Profile')+`<div class="body">
+    <div class="row-card" style="cursor:default"><div style="flex:0 0 54px;height:54px;border-radius:50%;background:var(--tint);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px">Y</div>
+      <div class="row-main"><div class="t" style="font-size:18px">You</div><div class="a">Riverside · 10 books catalogued · 2 loans</div></div></div>
+    <button class="btn primary" onclick="openSheet('invite')">Invite a neighbor</button>
+    ${req}
+    <div class="section-h">Connections</div>${conn}
+    <div class="section-h">Settings</div>
+    <div class="meta-block">
+      <div class="meta-row"><span class="k">Sharing default</span><span class="v">Visible to connections</span></div>
+      <div class="meta-row"><span class="k">Approximate location</span><span class="v">Riverside</span></div>
+    </div>
+    <button class="btn ghost" onclick="resetDemo()">Reset demo</button>
+  </div>`;
+}
+
+function emptyState(t,s){return `<div class="empty"><div class="e-ic">${ICON.book}</div><div class="e-t">${t}</div><div class="e-s">${s}</div><button class="btn primary" style="max-width:200px;margin:16px auto 0" onclick="openSheet('add')">Add books</button></div>`;}
+
+/* ---------- SHEETS ---------- */
+function renderSheet(){
+  const el=$('sheet'); if(!S.sheet){el.innerHTML='';return;}
+  const {type,id}=S.sheet; let h='';
+  if(type==='add'){
+    h=`<h3>Add books</h3><p>Scan is fastest. Manual always available.</p>
+      <button class="opt icon" onclick="closeSheet();toast('Scanner — batch, running count, per-hit confirm')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M6 12h12"/></svg><div><div>Scan barcodes</div><div class="os">Batch mode · default</div></div></button>
+      <button class="opt icon" onclick="closeSheet();toast('Manual search — title or author')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><div>Search by title</div></button>
+      <button class="opt icon" onclick="closeSheet();toast('Add manually — no ISBN needed')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><div>Add manually</div></button>
+      <button class="opt icon" style="opacity:.55" onclick="closeSheet();toast('AI shelf scan — post-POC')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3"/></svg><div><div>Scan a whole shelf</div><div class="os">Post-POC</div></div></button>`;
+  } else if(type==='lend'){
+    const b=byId(S.myBooks,id);
+    h=`<h3>Lend this book</h3><p>Mark <b>${b.t}</b> as lent — no request needed. Pick who has it.</p>
+      <div class="section-h" style="margin:6px 4px 6px">A connection</div>
+      ${CONNECTIONS.map(n=>`<button class="opt" onclick="pickBorrower('${id}','${n}',false)"><span>${n}</span><span class="os">on Stacks ›</span></button>`).join('')}
+      <div class="section-h" style="margin:16px 4px 6px">Someone not on Stacks</div>
+      <input id="lendName" class="lend-input" placeholder="Type a name — e.g. Sarah (book club)" autocomplete="off">
+      <button class="btn primary" onclick="pickBorrowerCustom('${id}')">Lend to this person ›</button>`;
+  } else if(type==='due'){
+    const b=byId(S.myBooks,id);
+    const to = S.lendTo? S.lendTo.name : b.who;
+    const proactive = !!S.lendTo;
+    h=`<h3>${proactive?'Set a due date':'Mark as handed over'}</h3><p>${proactive?'Lending':'Handing'} <b>${b.t}</b> to ${to}. Due date is optional — the clock starts now, at handoff.</p>
+      <button class="opt" onclick="doDue('${id}','Aug 22')"><span>Due in 2 weeks</span><span class="os">Aug 22</span></button>
+      <button class="opt" onclick="doDue('${id}','Sep 5')"><span>Custom date…</span><span class="os">Pick a date</span></button>
+      <button class="opt" onclick="doDue('${id}',null)"><span>No due date</span><span class="os">Open-ended</span></button>`;
+  } else if(type==='decline'){
+    const b=byId(S.myBooks,id);
+    h=`<h3>Decline request</h3><p>${b.who} will only see that it was declined — no reason shared. Where should the copy go?</p>
+      <button class="opt" onclick="doDecline('${id}','available')"><span>Return to shelf</span><span class="os">Available</span></button>
+      <button class="opt" onclick="doDecline('${id}','unavailable')"><span>Keep off-market</span><span class="os">Not for lending</span></button>`;
+  } else if(type==='invite'){
+    h=`<h3>Invite a neighbor</h3><p>They join, connect, and can browse your shelf.</p>
+      <button class="opt icon" onclick="closeSheet();toast('Share link copied')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg><div>Share invite link</div></button>
+      <button class="opt icon" onclick="closeSheet();toast('Code: STCK-7Q2')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h.01M15 9h.01M9 15h.01M15 15h.01"/></svg><div>Show invite code</div></button>`;
+  }
+  el.innerHTML=`<div class="grabber"></div>${h}`;
+}
+
+/* clock */
+(function(){const d=new Date();$('clock').textContent=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');})();
+
+/* fit-to-viewport: scale the phone proportionally, keeping >=32px margin top & bottom */
+function fit(){
+  const margin=32; // required clearance above & below the frame
+  const s=Math.min(1, (window.innerHeight - margin*2)/852, (window.innerWidth - 40)/393);
+  document.documentElement.style.setProperty('--s', s.toFixed(4));
+}
+window.addEventListener('resize', fit);
+fit();
+render();
+</script>
+</body>
+</html>
