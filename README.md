@@ -4,7 +4,9 @@
 
 *"Stacks" is a working name and can change.*
 
-**Status:** Pre-build. Seeding the knowledge base and preparing a proof of concept. No code yet.
+**Status:** Pre-build. Seeding the knowledge base and preparing a proof of concept.
+
+**This repo is docs-only.** It holds specs, decisions, and design rationale, never app code. The iOS app lives in [`stacks-ios`](https://github.com/nickm717/stacks-ios); a `stacks-web` repo will follow the same pattern if a companion web surface is ever built. See "Repo structure" in `decisions/decision-log.md` for the rationale.
 
 ---
 
@@ -15,7 +17,7 @@ stacks-context/
 ├── CLAUDE.md                          Operating rules for any AI agent (Claude Code, Design, Cowork). Read first.
 ├── README.md                          You are here. Human start point and glossary.
 ├── PRODUCT.md                         Impeccable context (required): register, users, brand, anti-refs, principles.
-├── DESIGN.md                          Impeccable context (visual): color, type, elevation, components. SEED scaffold.
+├── DESIGN.md                          Impeccable context (visual): color, type, elevation, components. Values locked.
 │
 ├── product/
 │   ├── product-brief.md               Vision, mission, personas, metrics, the wedge.

@@ -22,6 +22,8 @@ Status key: **Accepted** (settled), **Recommended** (leading option, not yet con
 
 ## Platform and stack
 
+**Repo structure: two repos now, a third if web ever happens.** *Accepted (2026-08-16).* `stacks-context` stays docs-only: specs, PRDs, decisions, design rationale, and the `CLAUDE.md` / `PRODUCT.md` / `DESIGN.md` operating context. App code lives in a new `stacks-ios` repo, created alongside this decision. A `stacks-web` repo follows the same pattern if a companion web surface is ever built (see "Hosting" below, Vercel is the candidate). Rationale: keeps docs history clean of code churn (commits, PRs, CI noise), keeps `Linked doc` URLs into specs stable no matter how the app repo gets refactored, and still lets every repo's agent load the same `CLAUDE.md` rules and decision logs as a lightweight read reference. Tradeoff accepted: a coding agent working in `stacks-ios` has to be pointed at `stacks-context` explicitly rather than finding specs in the same tree; the `Linked doc` convention in Notion's How This Works page now specifies which repo per card.
+
 **iOS first.** *Accepted.* Native scanning quality (VisionKit, on-device Vision, OCR) and reliable push are the deciding factors, since cataloging is the core value. The tradeoff, cutting out Android neighbors in a density-dependent product, is accepted for the POC and revisited before launch.
 
 **React Native with Expo.** *Recommended.* Keeps TypeScript, gives native camera via `react-native-vision-camera`, ships iOS first with Android as later config-and-test. Alternatives: pure Swift (only to push on-device shelf-scan quality), or a web PWA (only to validate the lending loop fastest). Supabase is the backend regardless, so this is not blocking.
