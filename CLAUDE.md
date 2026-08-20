@@ -30,7 +30,7 @@ stacks-context/
 ├── CLAUDE.md                     ← you are here. Rules + orientation for every agent.
 ├── README.md                     Human-facing start point and glossary.
 ├── PRODUCT.md                    Impeccable context (required): register, users, brand, anti-refs, principles.
-├── DESIGN.md                     Impeccable context (visual): color, type, elevation, components. SEED scaffold.
+├── DESIGN.md                     Impeccable context (visual): color, type, elevation, components. Values locked.
 │
 ├── product/
 │   ├── product-brief.md          Vision, mission, personas, metrics, the wedge.

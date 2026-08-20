@@ -12,7 +12,7 @@ Synthesized from `PRODUCT.md`, `DESIGN.md`, `design/design-principles.md`, `desi
 
 | Foundation | Decision | Still open |
 |---|---|---|
-| **Color strategy** | Restrained (tinted neutrals + one accent), warm/paper-adjacent direction — not sepia, not cool/corporate. Same warm undertone extends to the six semantic state colors. | Exact OKLCH values for primary, neutral-bg, and each of the 6 state colors, each in a light + dark variant, each WCAG AA-verified against its paired label/icon. |
+| **Color strategy** | Achromatic chassis — no brand accent. Warm near-black ink on barely-warm near-white (hue 72–78°, chroma 0.003). Color appears in three momentary roles only: four `status/*` hues, per-book `background/cover-tint` (detail header only), and `feedback/scan-hit`. | Exact OKLCH values locked in `DESIGN.md` §Colors, each light + dark, each WCAG AA-verified against its paired label/icon. **Figma library and `tokens/colors.css` still need a resync to these values.** |
 | **Theme** | Light and dark mode, system-driven with a user override in settings. | Nothing structural — just needs every color token duplicated for dark. |
 | **Typography** | SF Pro for nearly everything (body, labels, buttons, data). New York (serif) reserved for display/heading type only. Type scale is even-numbered, tighter product-UI ratio (~1.125–1.2). | Concrete step values for the type scale; whether New York appears anywhere outside onboarding/headers. |
 | **Elevation** | Mostly flat/tonal (card chrome, sheets, rows). Book covers specifically get a light shadow/lift for physical dimension. | Exact shadow values (blur/spread/opacity) once the book card is crafted. |
@@ -64,15 +64,17 @@ The single most-reused component in the app (already an Accepted decision: "Copy
 ### C. State badge
 The highest-stakes component to get right — it's the whole legibility promise (Principle 3) and the accessibility-critical one (never color alone). It isn't six variants, it's closer to eleven once role is factored in. Full enumeration, pulled directly from the state-by-role grid in `circulation/copy-state-model.md`:
 
-| State | Owner-facing label | Other-role label | Badge color role |
+| State | Owner-facing label | Other-role label | Badge color token |
 |---|---|---|---|
-| Available | "Available" | — | positive/calm |
-| Requested | "Requested by [name]" | Requester: "Request pending" · Others: "On hold" | amber |
-| Ready for pickup | "Ready for pickup — reserved for [name]" | Requester: "Approved · arrange pickup" · Others: "On hold" | green/reserved |
-| Checked out | "Checked out to [name]" + due date / no due date / "not on Stacks" flag | "Checked out" (+ return-by date if set) | muted/neutral |
-| Return pending | "[name] marked this returned. Confirm?" | Borrower: "Return submitted, awaiting confirmation" | blue |
-| Overdue | "Overdue, was due [date], with [name]" | Borrower: overdue flag | red |
-| Unavailable | "Not available for lending" | "Owner has it, not available for lending" | muted/neutral |
+| Available | "Available" | — | `status/positive` |
+| Requested | "Requested by [name]" | Requester: "Request pending" · Others: "On hold" | `status/attention` |
+| Ready for pickup | "Ready for pickup — reserved for [name]" | Requester: "Approved · arrange pickup" · Others: "On hold" | `status/attention` |
+| Checked out | "Checked out to [name]" + due date / no due date / "not on Stacks" flag | "Checked out" (+ return-by date if set) | `status/neutral` |
+| Return pending | "[name] marked this returned. Confirm?" | Borrower: "Return submitted, awaiting confirmation" | `status/attention` |
+| Overdue | "Overdue, was due [date], with [name]" | Borrower: overdue flag | `status/overdue` |
+| Unavailable | "Not available for lending" | "Owner has it, not available for lending" | `status/neutral` |
+
+Seven states, four hues (per the 2026-08-16 achromatic-chassis decision). Hue encodes *does this need me*; the SF Symbol and label encode *which state*. Because three states now share `status/attention` and two share `status/neutral`, **icon selection is no longer cosmetic** — it is the only thing distinguishing them at a glance, which raises the stakes on the open symbol-picking task in §5.
 
 Icon system is settled (SF Symbols), so each badge can now be paired with a real symbol rather than a placeholder — that pairing is still an open task (§5). Badge needs a compact mode (grid cell) and a full mode (list row / detail header), and — new, from the Dynamic Type decision — a **capped fallback layout at AX1** for the grid/compact mode specifically, since dense components don't scale past AX1 (§2).
 
@@ -171,7 +173,7 @@ Two states are still easy to forget: **camera-permission-denied** (needs its man
 The 2026-08-10 round resolved most of the blocking foundational and platform questions (§1–§2 above capture the decisions). What's left:
 
 ### Needs exact values (direction already set)
-1. Primary, neutral-bg, and the six state colors in OKLCH — light + dark variants, each WCAG AA-verified.
+1. ~~Primary, neutral-bg, and the six state colors in OKLCH~~ — **closed.** Values locked in `DESIGN.md` §Colors (2026-08-16 achromatic-chassis revision). Remaining work is a resync of the Figma `Color` collection and `tokens/colors.css`, plus confirming where `tokens/colors.css` actually lives — it isn't in this repo.
 2. Type scale step values (even numbers, ~1.125–1.2 ratio).
 3. Corner-radius scale (spacing scale is set; radius isn't).
 4. Book-cover shadow values (blur/spread/opacity) once the card is crafted.
@@ -179,7 +181,7 @@ The 2026-08-10 round resolved most of the blocking foundational and platform que
 
 ### Component-level, still open
 6. Global Add: floating action button vs. header-embedded icon.
-7. Visual treatment for "careful" actions (mark unavailable, decline) that must not read as destructive/red.
+7. Visual treatment for "careful" actions (mark unavailable, decline) that must not read as destructive/red. **Narrowed:** `action/caution` was retired in the achromatic-chassis pass, so the options are now a `status/attention`-toned treatment or a neutral `background/fill` button — not a dedicated amber-brown token.
 8. Skeleton-loader adoption as the house loading pattern — recommended, needs a yes.
 9. Empty-state illustration style: custom line art, none, or something else — three empty states need this (library, browse/connections, notifications).
 10. SF Symbol selection per state badge (icon system is chosen; the specific 11 symbols aren't picked yet).

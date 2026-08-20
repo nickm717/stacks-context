@@ -36,7 +36,7 @@ Build a **clickable, low-fidelity wireframe prototype** of a mobile app called *
 6. Bell increments again → **N1** → tap "return to confirm" → **L10** → **Confirm returned** (copy → *Available*) OR **Didn't receive it** (bounces back to *Checked out*). Include both buttons.
 
 **Copy-state rules (from the attached copy-state model — apply on every card):**
-- Six states: Available, Requested, Checked out, Return pending, Overdue, Unavailable. Each gets a distinct labeled badge.
+- Six states: Available, Requested, Checked out, Return pending, Overdue, Unavailable. Each gets its own labeled badge — but note the badges share only **four** colors (`status/positive` = Available; `status/attention` = Requested / Return pending; `status/overdue` = Overdue; `status/neutral` = Checked out / Unavailable). The label and icon, not the hue, are what distinguish states.
 - Labels are role-specific: the requester sees "Request pending," any other neighbor sees "On hold" (no name). The owner sees "Requested by [name]."
 - Populate the demo shelf with a mix of states so the vocabulary is visible at a glance (e.g. several Available, one Checked out, one Unavailable, one Overdue).
 
