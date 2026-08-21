@@ -6,7 +6,6 @@ What is genuinely unresolved, and what has been deliberately postponed so it is 
 
 ## Open, needs a decision
 
-- **Framework confirmation.** iOS-first is settled. React Native with Expo is the recommendation, but pure Swift and web PWA are still on the table depending on how far the on-device shelf-scan experience should be pushed versus how fast the lending loop should be validated. See `engineering/platform-and-stack.md`.
 - **Seed strategy for local density.** The hardest product problem. Whose network do we start with? Do we partner with existing Little Free Library stewards or a neighborhood community to seed a first pod? Nothing decided.
 - **Product name.** "Stacks" is a placeholder.
 - **Privacy handling detail.** Approximate location is the principle. The *in-app* representation of handoff is now settled (approve → ready → handed over; see `circulation/copy-state-model.md`), but the specifics of coordinating the physical swap and meet points are still out of app and undesigned.

@@ -16,17 +16,21 @@ Launch on iOS. The reasoning and the tradeoff are both real and worth holding on
 **The tradeoff, stated honestly**
 - iOS-only cuts out every Android neighbor. For a product whose value scales with how many people on your block are on it, that is a strategic cost, not a minor one. It is accepted for the POC and revisited before any real launch.
 
-## Framework: React Native with Expo (recommended, pending confirmation)
+## Framework: native Swift / SwiftUI (decided)
 
-**Leading option: React Native with Expo.** Keeps TypeScript, gives native camera and on-device scanning through `react-native-vision-camera`, ships iOS first, and makes Android largely a config-and-test effort later rather than a second codebase.
+**Full native Swift.** No React Native, no Expo. Chosen over RN + Expo primarily for two reasons: uncapped access to VisionKit's `DataScannerViewController` and on-device Vision for batch barcode scan and future printed-ISBN OCR, with no bridge or third-party-library-lag risk; and automatic, app-wide adoption of Apple's Liquid Glass design material as the OS ships it, rather than depending on third-party RN wrapper libraries that trail platform releases and cover surfaces piecemeal.
 
-**Alternatives considered**
-- **Pure Swift.** Only if the goal is to push on-device shelf-scan quality as far as Apple's Vision and Core ML allow. Costs a new language and an iOS-only codebase.
-- **Web PWA.** Only if the real goal is validating the lending loop as fast as possible rather than the cataloging magic. Weaker camera and notifications.
+**Tradeoff accepted knowingly.** Day-to-day iteration is slower across the *whole* app — every screen goes through Xcode's compile/install/launch loop rather than RN's near-instant Fast Refresh, not just the scanner. SwiftUI Previews cover isolated view/component iteration well; testing full flows (navigation, live Supabase calls, auth) still needs a simulator run.
 
-Supabase is the backend in all three cases, so this choice does not block backend work.
+**Alternatives considered, not chosen**
+- **React Native with Expo.** Was the leading option through most of the discussion. Faster iteration loop app-wide, and a real (if partial) web-reuse path via `react-native-web`. Lost out because the app's two highest-value differentiators — scan quality and native visual fidelity — are exactly the two things RN makes you chase rather than get by default.
+- **Web PWA.** Only if the real goal is validating the lending loop as fast as possible rather than the cataloging magic. Weaker camera and notifications. Effectively foreclosed by catalog-first sequencing already being validated (see decision-log, "Catalog-first sequencing").
 
-This is the one platform question still formally open, see `decisions/open-questions.md`.
+**Web companion, if it ever happens:** an independent, separately-scoped build (browsing/managing, not scanning) — no shared client code with the iOS app, since it's no longer React Native. See "Repo structure" in `decisions/decision-log.md`.
+
+Supabase is the backend regardless, so none of this blocks backend work.
+
+This was the one platform question still formally open; it's now resolved, see `decisions/decision-log.md`.
 
 ---
 
@@ -41,12 +45,12 @@ This is the one platform question still formally open, see `decisions/open-quest
 ## Hosting
 
 - Any server-side resolver logic runs as **Supabase Edge Functions**.
-- Native app distribution through **Expo EAS** and TestFlight for the POC.
+- Native app distribution through **Xcode** archive builds and **TestFlight** for the POC.
 - If a companion web surface is ever needed, **Vercel**.
 
 ## Key libraries
 
-- **Scanning:** `react-native-vision-camera` on native. `@zxing/browser` if a web surface is ever built.
+- **Scanning:** VisionKit's `DataScannerViewController` and the on-device Vision framework, native. `@zxing/browser` if a web surface is ever built (independent build, not shared client code).
 - **Vision (AI shelf scan):** the Anthropic API for the shelf-photo to titles step.
 
 ---

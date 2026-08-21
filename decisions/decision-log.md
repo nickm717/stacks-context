@@ -26,7 +26,11 @@ Status key: **Accepted** (settled), **Recommended** (leading option, not yet con
 
 **iOS first.** *Accepted.* Native scanning quality (VisionKit, on-device Vision, OCR) and reliable push are the deciding factors, since cataloging is the core value. The tradeoff, cutting out Android neighbors in a density-dependent product, is accepted for the POC and revisited before launch.
 
-**React Native with Expo.** *Recommended.* Keeps TypeScript, gives native camera via `react-native-vision-camera`, ships iOS first with Android as later config-and-test. Alternatives: pure Swift (only to push on-device shelf-scan quality), or a web PWA (only to validate the lending loop fastest). Supabase is the backend regardless, so this is not blocking.
+**Native Swift / SwiftUI, confirmed.** *Accepted (2026-08-21).* Closes the framework question. Deciding factors: cataloging speed is the core value prop, and native gives the best batch-scan and future printed-ISBN OCR quality via VisionKit's `DataScannerViewController` and on-device Vision, with no bridge or third-party-library-lag risk. Native also adopts Apple's Liquid Glass design material automatically as the OS ships it, versus RN requiring third-party wrapper libraries (Callstack, Expo, gluestack) that trail platform releases and cover surfaces piecemeal rather than app-wide. Tradeoff accepted knowingly: a slower day-to-day iteration loop across the whole app (Xcode compile/install/launch vs. RN's near-instant Fast Refresh), not just the scanner screen. **Supersedes** the React Native with Expo recommendation below.
+
+**Web companion.** *Deferred.* If a web surface is ever needed, it ships as an independent, separately-scoped build (browsing/managing, not scanning) rather than shared code — the client is no longer React Native, so there's no `react-native-web` reuse path. Not blocking the POC.
+
+**React Native with Expo.** *Superseded 2026-08-21 (see above).* Was the leading option: kept TypeScript, gave native camera via `react-native-vision-camera`, shipped iOS first with Android as later config-and-test. Alternatives considered at the time: pure Swift (only to push on-device shelf-scan quality), or a web PWA (only to validate the lending loop fastest). Supabase was the backend regardless either way, so the choice was never backend-blocking.
 
 **Supabase backend.** *Accepted.* Postgres, Auth, Storage, Realtime, and row-level security. RLS is the sharing mechanism: visibility lives in the database, not app code.
 
